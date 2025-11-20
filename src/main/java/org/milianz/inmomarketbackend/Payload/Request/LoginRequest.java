@@ -5,10 +5,10 @@ import lombok.Data;
 
 @Data
 public class LoginRequest {
-    @NotBlank
+    @NotBlank(message = "{login.email.notblank}")
     private String email;
 
-    @NotBlank
+    @NotBlank(message = "{login.password.notblank}")
     private String password;
 
 }

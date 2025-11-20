@@ -8,20 +8,20 @@ import lombok.Data;
 
 @Data
 public class SingupRequest {
-    @NotBlank
-    @Size(min = 3, max = 100)
+    @NotBlank(message = "{signup.name.notblank}")
+    @Size(min = 3, max = 100, message = "{signup.name.size}")
     private String name;
 
-    @NotBlank
-    @Size(max = 100)
-    @Email
+    @NotBlank(message = "{signup.email.notblank}")
+    @Size(max = 100, message = "{signup.email.size}")
+    @Email(message = "{signup.email.invalid}")
     private String email;
 
-    @Pattern(regexp = "^\\+?[1-9]\\d{1,14}$", message = "El número de teléfono debe tener un formato válido")
+    @Pattern(regexp = "^\\+?[1-9]\\d{1,14}$", message = "{signup.phoneNumber.invalid}")
     private String phoneNumber;
 
-    @NotBlank
-    @Size(min = 6, max = 40)
+    @NotBlank(message = "{signup.password.notblank}")
+    @Size(min = 6, max = 40, message = "{signup.password.size}")
     private String password;
 
     private String role;
