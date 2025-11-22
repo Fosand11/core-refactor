@@ -4,10 +4,12 @@ package org.milianz.inmomarketbackend.Controllers;
 import jakarta.validation.Valid;
 import org.milianz.inmomarketbackend.Domain.Entities.DTOs.PublicationDefaultDTO;
 import org.milianz.inmomarketbackend.Domain.Entities.DTOs.PublicationSaveDTO;
+import org.milianz.inmomarketbackend.Domain.Entities.DTOs.PublicationUpdateDTO;
 import org.milianz.inmomarketbackend.Services.CloudinaryService;
 import org.milianz.inmomarketbackend.Services.PublicationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import java.math.BigDecimal;
@@ -112,5 +114,15 @@ public class PublicationController {
         } catch (Exception e) {
             return ResponseEntity.status(500).body(null);
         }
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<?> updatePublication(
+            @PathVariable("id") UUID publicationId,
+            @Valid @ModelAttribute PublicationUpdateDTO publicationUpdateDTO,
+            Principal principal,
+            @RequestParam(value = "files", required = false) MultipartFile[] files) throws Exception {
+        return publicationService.updatePublication(publicationId, publicationUpdateDTO, principal.getName(), files);
     }
 }

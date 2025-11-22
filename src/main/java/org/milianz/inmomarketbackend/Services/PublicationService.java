@@ -3,7 +3,9 @@ package org.milianz.inmomarketbackend.Services;
 import org.milianz.inmomarketbackend.Domain.Entities.*;
 import org.milianz.inmomarketbackend.Domain.Entities.DTOs.PublicationDefaultDTO;
 import org.milianz.inmomarketbackend.Domain.Entities.DTOs.PublicationSaveDTO;
+import org.milianz.inmomarketbackend.Domain.Entities.DTOs.PublicationUpdateDTO;
 import org.milianz.inmomarketbackend.Domain.Repositories.*;
+import org.milianz.inmomarketbackend.Payload.Response.MessageResponse;
 import org.milianz.inmomarketbackend.Utils.PublicationsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -164,5 +166,95 @@ public class PublicationService {
                 .toList();
         PublicationsConstructor constructor = new PublicationsConstructor();
         return constructor.PublicationsList(publications);
+    }
+
+    // Actualiza una publicación existente. Solo el propietario puede editar sus publicaciones.
+    // Los campos que no se envíen en el DTO permanecen sin cambios.
+    public ResponseEntity<?> updatePublication(UUID publicationId, PublicationUpdateDTO publicationUpdateDTO, String userName, MultipartFile[] files) {
+        try {
+            // Obtener el usuario actual
+            User currentUser = userRepository.findByEmail(userName)
+                    .orElseThrow(() -> new RuntimeException("Usuario no encontrado con email: " + userName));
+
+            // Buscar la publicación
+            Publication publication = publicationRepository.findById(publicationId)
+                    .orElseThrow(() -> new RuntimeException("Publicación no encontrada con ID: " + publicationId));
+
+            // Verificar que el usuario sea el propietario de la publicación
+            if (!publication.getUser().getId().equals(currentUser.getId())) {
+                return ResponseEntity.status(403)
+                        .body(new MessageResponse("No tienes permisos para editar esta publicación"));
+            }
+
+            // Actualizar solo los campos que se envían en la petición
+            if (publicationUpdateDTO.getPropertyAddress() != null) {
+                publication.setPropertyAddress(publicationUpdateDTO.getPropertyAddress());
+            }
+            if (publicationUpdateDTO.getPropertyTitle() != null) {
+                publication.setPropertyTitle(publicationUpdateDTO.getPropertyTitle());
+            }
+            if (publicationUpdateDTO.getLongitude() != null) {
+                publication.setLongitude(publicationUpdateDTO.getLongitude());
+            }
+            if (publicationUpdateDTO.getLatitude() != null) {
+                publication.setLatitude(publicationUpdateDTO.getLatitude());
+            }
+            if (publicationUpdateDTO.getPropertySize() != null) {
+                publication.setPropertySize(publicationUpdateDTO.getPropertySize());
+            }
+            if (publicationUpdateDTO.getPropertyBedrooms() != null) {
+                publication.setPropertyBedrooms(publicationUpdateDTO.getPropertyBedrooms());
+            }
+            if (publicationUpdateDTO.getPropertyFloors() != null) {
+                publication.setPropertyFloors(publicationUpdateDTO.getPropertyFloors());
+            }
+            if (publicationUpdateDTO.getPropertyParking() != null) {
+                publication.setPropertyParking(publicationUpdateDTO.getPropertyParking());
+            }
+            if (publicationUpdateDTO.getPropertyFurnished() != null) {
+                publication.setPropertyFurnished(publicationUpdateDTO.getPropertyFurnished());
+            }
+            if (publicationUpdateDTO.getPropertyDescription() != null) {
+                publication.setPropertyDescription(publicationUpdateDTO.getPropertyDescription());
+            }
+            if (publicationUpdateDTO.getPropertyPrice() != null) {
+                publication.setPropertyPrice(publicationUpdateDTO.getPropertyPrice());
+            }
+
+            // Actualizar tipo de propiedad si se especifica
+            if (publicationUpdateDTO.getTypeName() != null) {
+                PropertyType propertyType = propertyTypeRepository.findByTypeName(publicationUpdateDTO.getTypeName())
+                        .orElseGet(() -> propertyTypeService.createPropertyType(publicationUpdateDTO));
+                publication.setPropertyType(propertyType);
+            }
+
+            // Actualizar ubicación si se envía alguno de sus campos
+            if (publicationUpdateDTO.getDepartment() != null ||
+                publicationUpdateDTO.getMunicipality() != null ||
+                publicationUpdateDTO.getNeighborhood() != null) {
+                Location location = locationService.createLocation(publicationUpdateDTO);
+                publication.setLocation(location);
+            }
+
+            // Agregar nuevas imágenes si se envían archivos
+            if (files != null && files.length > 0) {
+                List<PropertyImage> propertyImages = cloudinaryService.uploadImage(files, publication);
+                publication.getPropertyImages().addAll(propertyImages);
+            }
+
+            // Actualizar horarios disponibles. Se reemplazan todos los existentes.
+            if (publicationUpdateDTO.getAvailableTimes() != null && !publicationUpdateDTO.getAvailableTimes().isEmpty()) {
+                publication.getAvailableTimes().clear();
+                List<AvailableTime> availableTimes = availableTimeService.createAvailableTime(publicationUpdateDTO, publication);
+                publication.setAvailableTimes(availableTimes);
+            }
+
+            publicationRepository.save(publication);
+
+            PublicationsConstructor constructor = new PublicationsConstructor();
+            return ResponseEntity.ok(constructor.PublicationUnique(publication));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(new MessageResponse("Error actualizando publicación: " + e.getMessage()));
+        }
     }
 }
