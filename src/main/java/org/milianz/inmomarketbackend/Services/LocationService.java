@@ -2,6 +2,7 @@ package org.milianz.inmomarketbackend.Services;
 
 
 import org.milianz.inmomarketbackend.Domain.Entities.DTOs.PublicationSaveDTO;
+import org.milianz.inmomarketbackend.Domain.Entities.DTOs.PublicationUpdateDTO;
 import org.milianz.inmomarketbackend.Domain.Entities.Location;
 import org.milianz.inmomarketbackend.Domain.Repositories.iLocationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +28,25 @@ public class LocationService {
         location.setNeighborhood(publicationSaveDTO.getNeighborhood());
         location.setMunicipality(publicationSaveDTO.getMunicipality());
         location.setDepartment(publicationSaveDTO.getDepartment());
+        location = locationRepository.save(location);
+
+        return location;
+    }
+
+    // Sobrecarga del método para soportar actualización de publicaciones
+    public Location createLocation(PublicationUpdateDTO publicationUpdateDTO) {
+
+        Optional<Location> existingLocation = locationRepository.findByNeighborhoodAndMunicipalityAndDepartment(publicationUpdateDTO.getNeighborhood(),
+                publicationUpdateDTO.getMunicipality(), publicationUpdateDTO.getDepartment());
+
+        if (existingLocation.isPresent()) {
+            return existingLocation.get();
+        }
+
+        Location location = new Location();
+        location.setNeighborhood(publicationUpdateDTO.getNeighborhood());
+        location.setMunicipality(publicationUpdateDTO.getMunicipality());
+        location.setDepartment(publicationUpdateDTO.getDepartment());
         location = locationRepository.save(location);
 
         return location;
