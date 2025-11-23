@@ -86,49 +86,57 @@ public class PublicationService {
     }
 
     public List<PublicationDefaultDTO> getPublicationsByDepartment(String department) {
-        List<Publication> publications = publicationRepository.findByLocation_Department(department);
+        List<Publication> publications = publicationRepository.findByLocation_DepartmentAndStatus(
+                department, Publication.PublicationStatus.ACTIVE);
         PublicationsConstructor constructor = new PublicationsConstructor();
         return constructor.PublicationsList(publications);
     }
 
     public List<PublicationDefaultDTO> getPublicationsByPrice(BigDecimal minPrice, BigDecimal maxPrice) {
-        List<Publication> publications = publicationRepository.findByPropertyPriceBetween(minPrice, maxPrice);
+        List<Publication> publications = publicationRepository.findByPropertyPriceBetweenAndStatus(
+                minPrice, maxPrice, Publication.PublicationStatus.ACTIVE);
         PublicationsConstructor constructor = new PublicationsConstructor();
         return constructor.PublicationsList(publications);
     }
 
     public List<PublicationDefaultDTO> getPublicationsByType(String typeName) {
-        List<Publication> publications = publicationRepository.findByPropertyType_TypeName(typeName);
+        List<Publication> publications = publicationRepository.findByPropertyType_TypeNameAndStatus(
+                typeName, Publication.PublicationStatus.ACTIVE);
         PublicationsConstructor constructor = new PublicationsConstructor();
         return constructor.PublicationsList(publications);
     }
 
     public List<PublicationDefaultDTO> getPublicationsBySize(BigDecimal minSize, BigDecimal maxSize) {
-        List<Publication> publications = publicationRepository.findByPropertySizeBetween(minSize, maxSize);
+        List<Publication> publications = publicationRepository.findByPropertySizeBetweenAndStatus(
+                minSize, maxSize, Publication.PublicationStatus.ACTIVE);
         PublicationsConstructor constructor = new PublicationsConstructor();
         return constructor.PublicationsList(publications);
     }
 
     public List<PublicationDefaultDTO> getPublicationsByBedrooms(Integer bedrooms) {
-        List<Publication> publications = publicationRepository.findByPropertyBedrooms(bedrooms);
+        List<Publication> publications = publicationRepository.findByPropertyBedroomsAndStatus(
+                bedrooms, Publication.PublicationStatus.ACTIVE);
         PublicationsConstructor constructor = new PublicationsConstructor();
         return constructor.PublicationsList(publications);
     }
 
     public List<PublicationDefaultDTO> getPublicationsByFloors(Integer floors) {
-        List<Publication> publications = publicationRepository.findByPropertyFloors(floors);
+        List<Publication> publications = publicationRepository.findByPropertyFloorsAndStatus(
+                floors, Publication.PublicationStatus.ACTIVE);
         PublicationsConstructor constructor = new PublicationsConstructor();
         return constructor.PublicationsList(publications);
     }
 
     public List<PublicationDefaultDTO> getPublicationsByParking(Integer parking) {
-        List<Publication> publications = publicationRepository.findByPropertyParking(parking);
+        List<Publication> publications = publicationRepository.findByPropertyParkingAndStatus(
+                parking, Publication.PublicationStatus.ACTIVE);
         PublicationsConstructor constructor = new PublicationsConstructor();
         return constructor.PublicationsList(publications);
     }
 
     public List<PublicationDefaultDTO> getPublicationsByFurnished(Boolean furnished) {
-        List<Publication> publications = publicationRepository.findByPropertyFurnished(furnished);
+        List<Publication> publications = publicationRepository.findByPropertyFurnishedAndStatus(
+                furnished, Publication.PublicationStatus.ACTIVE);
         PublicationsConstructor constructor = new PublicationsConstructor();
         return constructor.PublicationsList(publications);
     }
@@ -152,7 +160,8 @@ public class PublicationService {
     }
 
     public List<PublicationDefaultDTO> getLastPublications() {
-        List<Publication> publications = publicationRepository.findTop10ByOrderByCreatedAtDesc();
+        List<Publication> publications = publicationRepository.findTop10ByStatusOrderByCreatedAtDesc(
+                Publication.PublicationStatus.ACTIVE);
         PublicationsConstructor constructor = new PublicationsConstructor();
         return constructor.PublicationsList(publications);
     }
@@ -161,6 +170,7 @@ public class PublicationService {
         List<Favorite> favorites = favoriteRepository.findTop10ByOrderByPublicationIdDesc();
         List<Publication> publications = favorites.stream()
                 .map(favorite -> favorite.getPublication())
+                .filter(publication -> publication.getStatus() == Publication.PublicationStatus.ACTIVE)
                 .toList();
         PublicationsConstructor constructor = new PublicationsConstructor();
         return constructor.PublicationsList(publications);
