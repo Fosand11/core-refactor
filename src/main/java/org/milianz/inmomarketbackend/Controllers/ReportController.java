@@ -68,10 +68,23 @@ public class ReportController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Page<ReportDefaultDTO>> getAllReports(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String status) {
 
         Pageable pageable = PageRequest.of(page, size, Sort.by("reportDate").descending());
-        Page<ReportDefaultDTO> reports = reportService.getAllReports(pageable);
+
+        // Convertir el string a enum si se proporciona
+        org.milianz.inmomarketbackend.Domain.Entities.Report.ReportStatus reportStatus = null;
+        if (status != null && !status.isEmpty()) {
+            try {
+                reportStatus = org.milianz.inmomarketbackend.Domain.Entities.Report.ReportStatus.valueOf(status.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                // Si el estado no es válido, retornar un error
+                return ResponseEntity.badRequest().build();
+            }
+        }
+
+        Page<ReportDefaultDTO> reports = reportService.getAllReports(reportStatus, pageable);
         return ResponseEntity.ok(reports);
     }
 

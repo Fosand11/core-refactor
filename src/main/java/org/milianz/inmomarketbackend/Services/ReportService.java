@@ -111,8 +111,13 @@ public class ReportService {
         return reports.map(this::convertToDTO);
     }
 
-    public Page<ReportDefaultDTO> getAllReports(Pageable pageable) {
-        Page<Report> reports = reportRepository.findByStatus(Report.ReportStatus.PENDING, pageable);
+    public Page<ReportDefaultDTO> getAllReports(Report.ReportStatus status, Pageable pageable) {
+        Page<Report> reports;
+        if (status != null) {
+            reports = reportRepository.findByStatus(status, pageable);
+        } else {
+            reports = reportRepository.findAll(pageable);
+        }
         return reports.map(this::convertToDTO);
     }
 

@@ -19,6 +19,9 @@ public interface iReportRepository extends iGenericRepository<Report, UUID> {
     // Para admin: obtener todos los reportes pendientes
     Page<Report> findByStatus(Report.ReportStatus status, Pageable pageable);
 
+    // Para admin: obtener todos los reportes (sin filtro de estado)
+    Page<Report> findAll(Pageable pageable);
+
     // Obtener reportes de una publicación específica
     Page<Report> findByPublicationId(UUID publicationId, Pageable pageable);
 
