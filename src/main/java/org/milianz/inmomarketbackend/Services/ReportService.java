@@ -121,6 +121,13 @@ public class ReportService {
         return reports.map(this::convertToDTO);
     }
 
+    public Page<ReportDefaultDTO> getMyReportsWithFeedback(Pageable pageable) {
+        User currentUser = getCurrentUser();
+        Page<Report> reports = reportRepository.findByReporterIdAndAdminFeedbackIsNotNull(
+                currentUser.getId(), pageable);
+        return reports.map(this::convertToDTO);
+    }
+
     @Transactional
     public ResponseEntity<?> resolveReport(UUID reportId, ReportResolveDTO reportResolveDTO) {
         try {

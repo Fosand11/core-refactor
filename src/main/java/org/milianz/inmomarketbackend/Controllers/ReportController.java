@@ -40,6 +40,17 @@ public class ReportController {
         return ResponseEntity.ok(reports);
     }
 
+    @GetMapping("/my-reports-with-feedback")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<Page<ReportDefaultDTO>> getMyReportsWithFeedback(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by("resolvedDate").descending());
+        Page<ReportDefaultDTO> reports = reportService.getMyReportsWithFeedback(pageable);
+        return ResponseEntity.ok(reports);
+    }
+
     @GetMapping("/admin/all")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Page<ReportDefaultDTO>> getAllReports(
