@@ -65,8 +65,11 @@ public class PublicationService {
 
             publicationRepository.save(publication);
 
-            List<PropertyImage> propertyImage = cloudinaryService.uploadImage(files, publication);
-            publication.setPropertyImages(propertyImage);
+            // Subir imágenes solo si se proporcionaron archivos
+            if (files != null && files.length > 0) {
+                List<PropertyImage> propertyImage = cloudinaryService.uploadImage(files, publication);
+                publication.setPropertyImages(propertyImage);
+            }
 
             List<AvailableTime> availableTimes = availableTimeService.createAvailableTime(publicationSaveDTO, publication);
             publication.setAvailableTimes(availableTimes);

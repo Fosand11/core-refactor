@@ -28,8 +28,11 @@ public class PublicationController {
     private CloudinaryService cloudinaryService;
 
     @PostMapping("/create")
-    public ResponseEntity <?> createPublication(@Valid @ModelAttribute PublicationSaveDTO publicationSaveDTO, Principal principal, @RequestParam("files") MultipartFile[] files) throws Exception {
-        return publicationService.createPublication(publicationSaveDTO , principal.getName(), files);
+    public ResponseEntity <?> createPublication(
+            @Valid @ModelAttribute PublicationSaveDTO publicationSaveDTO,
+            Principal principal,
+            @RequestParam(value = "files", required = false) MultipartFile[] files) throws Exception {
+        return publicationService.createPublication(publicationSaveDTO, principal.getName(), files);
     }
 
     @GetMapping("All")

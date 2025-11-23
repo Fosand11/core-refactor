@@ -30,4 +30,6 @@ public class PublicationDefaultDTO {
     private List<String> propertyImageUrls;
     private List<AvailableTimeDefaultDTO> availableTimes;
     private String userName;
+    private String userEmail;
+    private String userPhoneNumber;
 }
