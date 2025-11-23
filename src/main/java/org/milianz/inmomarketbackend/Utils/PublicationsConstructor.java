@@ -47,6 +47,8 @@ public class PublicationsConstructor {
                     dto.setAvailableTimes(availableTimeDTOs);
 
                     dto.setUserName(publication.getUser().getName());
+                    dto.setUserEmail(publication.getUser().getEmail());
+                    dto.setUserPhoneNumber(publication.getUser().getPhoneNumber());
 
                     return dto;
                 })
@@ -84,6 +86,8 @@ public class PublicationsConstructor {
         dto.setAvailableTimes(availableTimeDTOs);
 
         dto.setUserName(publication.getUser().getName());
+        dto.setUserEmail(publication.getUser().getEmail());
+        dto.setUserPhoneNumber(publication.getUser().getPhoneNumber());
 
         return dto;
     }
