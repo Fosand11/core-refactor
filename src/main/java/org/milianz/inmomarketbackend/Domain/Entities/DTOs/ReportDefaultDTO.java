@@ -21,4 +21,5 @@ public class ReportDefaultDTO {
     private LocalDateTime reportDate;
     private String adminFeedback;
     private LocalDateTime resolvedDate;
+    private Boolean feedbackRead;
 }

@@ -51,6 +51,19 @@ public class ReportController {
         return ResponseEntity.ok(reports);
     }
 
+    @GetMapping("/my-feedback-count")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<Long> getMyFeedbackCount() {
+        long count = reportService.getMyFeedbackCount();
+        return ResponseEntity.ok(count);
+    }
+
+    @PutMapping("/mark-feedback-read")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<?> markFeedbackAsRead(@RequestParam UUID reportId) {
+        return reportService.markFeedbackAsRead(reportId);
+    }
+
     @GetMapping("/admin/all")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Page<ReportDefaultDTO>> getAllReports(

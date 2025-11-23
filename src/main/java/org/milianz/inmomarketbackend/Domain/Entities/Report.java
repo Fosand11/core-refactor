@@ -53,6 +53,10 @@ public class Report {
     @Column(name = "resolved_date")
     private LocalDateTime resolvedDate;
 
+    @Builder.Default
+    @Column(name = "feedback_read")
+    private Boolean feedbackRead = false;
+
     // Enumeración para los estados del reporte
     public enum ReportStatus {
         PENDING, REVIEWED, RESOLVED, DISMISSED

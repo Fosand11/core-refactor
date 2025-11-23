@@ -128,6 +128,45 @@ public class ReportService {
         return reports.map(this::convertToDTO);
     }
 
+    public long getMyFeedbackCount() {
+        User currentUser = getCurrentUser();
+        return reportRepository.countByReporterIdAndAdminFeedbackIsNotNullAndFeedbackRead(
+                currentUser.getId(), false);
+    }
+
+    @Transactional
+    public ResponseEntity<?> markFeedbackAsRead(UUID reportId) {
+        try {
+            User currentUser = getCurrentUser();
+
+            Report report = reportRepository.findById(reportId)
+                    .orElseThrow(() -> new RuntimeException("Reporte no encontrado"));
+
+            if (!report.getReporter().getId().equals(currentUser.getId())) {
+                return ResponseEntity.badRequest()
+                        .body(new MessageResponse("No tienes permiso para marcar este reporte"));
+            }
+
+            if (report.getAdminFeedback() == null) {
+                return ResponseEntity.badRequest()
+                        .body(new MessageResponse("Este reporte no tiene feedback del admin"));
+            }
+
+            report.setFeedbackRead(true);
+            reportRepository.save(report);
+
+            logger.info("User {} marked report {} feedback as read",
+                    currentUser.getEmail(), reportId);
+
+            return ResponseEntity.ok(new MessageResponse("Feedback marcado como leído"));
+
+        } catch (Exception e) {
+            logger.error("Error marking feedback as read: {}", e.getMessage());
+            return ResponseEntity.badRequest()
+                    .body(new MessageResponse("Error al marcar el feedback como leído: " + e.getMessage()));
+        }
+    }
+
     @Transactional
     public ResponseEntity<?> resolveReport(UUID reportId, ReportResolveDTO reportResolveDTO) {
         try {
@@ -197,7 +236,8 @@ public class ReportService {
                 report.getStatus().name(),
                 report.getReportDate(),
                 report.getAdminFeedback(),
-                report.getResolvedDate()
+                report.getResolvedDate(),
+                report.getFeedbackRead()
         );
     }
 }
