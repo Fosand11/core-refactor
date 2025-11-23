@@ -21,4 +21,10 @@ public interface iReportRepository extends iGenericRepository<Report, UUID> {
 
     // Obtener reportes de una publicación específica
     Page<Report> findByPublicationId(UUID publicationId, Pageable pageable);
+
+    // Obtener reportes del usuario con feedback del admin
+    Page<Report> findByReporterIdAndAdminFeedbackIsNotNull(UUID reporterId, Pageable pageable);
+
+    // Contar reportes del usuario con feedback no leído
+    long countByReporterIdAndAdminFeedbackIsNotNullAndFeedbackRead(UUID reporterId, Boolean feedbackRead);
 }

@@ -3,6 +3,7 @@ package org.milianz.inmomarketbackend.Controllers;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.milianz.inmomarketbackend.Domain.Entities.DTOs.ReportDefaultDTO;
+import org.milianz.inmomarketbackend.Domain.Entities.DTOs.ReportResolveDTO;
 import org.milianz.inmomarketbackend.Domain.Entities.DTOs.ReportSaveDTO;
 import org.milianz.inmomarketbackend.Services.ReportService;
 import org.springframework.data.domain.Page;
@@ -39,6 +40,30 @@ public class ReportController {
         return ResponseEntity.ok(reports);
     }
 
+    @GetMapping("/my-reports-with-feedback")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<Page<ReportDefaultDTO>> getMyReportsWithFeedback(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by("resolvedDate").descending());
+        Page<ReportDefaultDTO> reports = reportService.getMyReportsWithFeedback(pageable);
+        return ResponseEntity.ok(reports);
+    }
+
+    @GetMapping("/my-feedback-count")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<Long> getMyFeedbackCount() {
+        long count = reportService.getMyFeedbackCount();
+        return ResponseEntity.ok(count);
+    }
+
+    @PutMapping("/mark-feedback-read")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<?> markFeedbackAsRead(@RequestParam UUID reportId) {
+        return reportService.markFeedbackAsRead(reportId);
+    }
+
     @GetMapping("/admin/all")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Page<ReportDefaultDTO>> getAllReports(
@@ -62,12 +87,12 @@ public class ReportController {
         return ResponseEntity.ok(reports);
     }
 
-    @PutMapping("/admin/{reportId}/resolve")
+    @PutMapping("/admin/{reportId}/resolve-with-feedback")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> resolveReport(
+    public ResponseEntity<?> resolveReportWithFeedback(
             @PathVariable UUID reportId,
-            @RequestParam String action) {
+            @Valid @RequestBody ReportResolveDTO reportResolveDTO) {
 
-        return reportService.resolveReport(reportId, action);
+        return reportService.resolveReport(reportId, reportResolveDTO);
     }
 }
