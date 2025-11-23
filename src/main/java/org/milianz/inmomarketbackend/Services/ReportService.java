@@ -5,6 +5,7 @@ import org.milianz.inmomarketbackend.Domain.Entities.Publication;
 import org.milianz.inmomarketbackend.Domain.Entities.Report;
 import org.milianz.inmomarketbackend.Domain.Entities.User;
 import org.milianz.inmomarketbackend.Domain.Entities.DTOs.ReportDefaultDTO;
+import org.milianz.inmomarketbackend.Domain.Entities.DTOs.ReportResolveDTO;
 import org.milianz.inmomarketbackend.Domain.Entities.DTOs.ReportSaveDTO;
 import org.milianz.inmomarketbackend.Domain.Repositories.iPublicationRepository;
 import org.milianz.inmomarketbackend.Domain.Repositories.iReportRepository;
@@ -121,31 +122,52 @@ public class ReportService {
     }
 
     @Transactional
-    public ResponseEntity<?> resolveReport(UUID reportId, String action) {
+    public ResponseEntity<?> resolveReport(UUID reportId, ReportResolveDTO reportResolveDTO) {
         try {
             Report report = reportRepository.findById(reportId)
                     .orElseThrow(() -> new RuntimeException("Reporte no encontrado"));
 
-            switch (action.toUpperCase()) {
+            if (report.getStatus() != Report.ReportStatus.PENDING) {
+                return ResponseEntity.badRequest()
+                        .body(new MessageResponse("Solo se pueden resolver reportes pendientes"));
+            }
+
+            switch (reportResolveDTO.getAction().toUpperCase()) {
                 case "APPROVE":
                     report.setStatus(Report.ReportStatus.RESOLVED);
-                    // Podrías también desactivar la publicación aquí si es necesario
+                    report.setAdminFeedback(reportResolveDTO.getFeedback());
+                    report.setResolvedDate(LocalDateTime.now());
+
+                    // Desactivar la publicación si el reporte es aprobado
+                    Publication publication = report.getPublication();
+                    if (publication.getStatus() == Publication.PublicationStatus.ACTIVE) {
+                        publication.setStatus(Publication.PublicationStatus.INACTIVE);
+                        publicationRepository.save(publication);
+                        logger.info("Publication {} has been deactivated due to approved report {}",
+                                publication.getId(), reportId);
+                    }
                     break;
                 case "DISMISS":
                     report.setStatus(Report.ReportStatus.DISMISSED);
+                    report.setAdminFeedback(reportResolveDTO.getFeedback());
+                    report.setResolvedDate(LocalDateTime.now());
                     break;
                 default:
                     return ResponseEntity.badRequest()
-                            .body(new MessageResponse("Acción no válida"));
+                            .body(new MessageResponse("Acción no válida. Use 'APPROVE' o 'DISMISS'"));
             }
 
             reportRepository.save(report);
-            return ResponseEntity.ok(new MessageResponse("Reporte resuelto exitosamente"));
+
+            logger.info("Report {} resolved with action {} by admin",
+                    reportId, reportResolveDTO.getAction());
+
+            return ResponseEntity.ok(new MessageResponse("Reporte resuelto exitosamente con feedback"));
 
         } catch (Exception e) {
             logger.error("Error resolving report: {}", e.getMessage());
             return ResponseEntity.badRequest()
-                    .body(new MessageResponse("Error al resolver el reporte"));
+                    .body(new MessageResponse("Error al resolver el reporte: " + e.getMessage()));
         }
     }
 
@@ -166,7 +188,9 @@ public class ReportService {
                 report.getReason(),
                 report.getDescription(),
                 report.getStatus().name(),
-                report.getReportDate()
+                report.getReportDate(),
+                report.getAdminFeedback(),
+                report.getResolvedDate()
         );
     }
 }

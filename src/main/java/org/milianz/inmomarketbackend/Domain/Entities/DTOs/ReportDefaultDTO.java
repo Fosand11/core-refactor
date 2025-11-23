@@ -19,4 +19,6 @@ public class ReportDefaultDTO {
     private String description;
     private String status;
     private LocalDateTime reportDate;
+    private String adminFeedback;
+    private LocalDateTime resolvedDate;
 }

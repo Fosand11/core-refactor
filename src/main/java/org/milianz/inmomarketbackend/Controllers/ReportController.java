@@ -3,6 +3,7 @@ package org.milianz.inmomarketbackend.Controllers;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.milianz.inmomarketbackend.Domain.Entities.DTOs.ReportDefaultDTO;
+import org.milianz.inmomarketbackend.Domain.Entities.DTOs.ReportResolveDTO;
 import org.milianz.inmomarketbackend.Domain.Entities.DTOs.ReportSaveDTO;
 import org.milianz.inmomarketbackend.Services.ReportService;
 import org.springframework.data.domain.Page;
@@ -62,12 +63,12 @@ public class ReportController {
         return ResponseEntity.ok(reports);
     }
 
-    @PutMapping("/admin/{reportId}/resolve")
+    @PutMapping("/admin/{reportId}/resolve-with-feedback")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> resolveReport(
+    public ResponseEntity<?> resolveReportWithFeedback(
             @PathVariable UUID reportId,
-            @RequestParam String action) {
+            @Valid @RequestBody ReportResolveDTO reportResolveDTO) {
 
-        return reportService.resolveReport(reportId, action);
+        return reportService.resolveReport(reportId, reportResolveDTO);
     }
 }

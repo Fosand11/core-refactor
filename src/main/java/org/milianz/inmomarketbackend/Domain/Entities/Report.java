@@ -47,6 +47,12 @@ public class Report {
     @Enumerated(EnumType.STRING)
     private ReportStatus status;
 
+    @Column(name = "admin_feedback", columnDefinition = "TEXT")
+    private String adminFeedback;
+
+    @Column(name = "resolved_date")
+    private LocalDateTime resolvedDate;
+
     // Enumeración para los estados del reporte
     public enum ReportStatus {
         PENDING, REVIEWED, RESOLVED, DISMISSED
