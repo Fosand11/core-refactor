@@ -2,7 +2,10 @@
 
 # Inmomarket
 
-Base URLs: localhost:8080
+Base URLs: https://web-production-06592e.up.railway.app/
+
+> [!NOTE]
+> Swagger de nuestra API: https://web-production-06592e.up.railway.app/swagger-ui/index.html#/
 
 # Authentication
 
