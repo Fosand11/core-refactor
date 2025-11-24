@@ -1,295 +1,234 @@
-[![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/ffem3vg3)
 
-# Inmomarket
+# InmoMarket – Backend (API REST)
 
-Base URLs: localhost:8080
+Este módulo corresponde al backend de la plataforma InmoMarket, una aplicación diseñada para gestionar usuarios, publicaciones, reportes y autenticación mediante JWT.  
+La API está desarrollada con **Spring Boot**, siguiendo buenas prácticas de organización, seguridad y persistencia en base de datos relacional.
 
-# Authentication
+Su función principal es proveer todos los servicios que utiliza el frontend, asegurando que los datos se almacenen, procesen y validen correctamente.
 
-- HTTP Authentication, scheme: bearer
+## Descripción del Proyecto
 
-# Default
+El backend proporciona toda la lógica de negocio y comunicación con PostgreSQL necesaria para que la plataforma funcione correctamente.  
+Incluye:
 
-## POST SingIn v2
+- Registro, inicio de sesión y autenticación mediante JWT.  
+- Creación, edición y listado de publicaciones.  
+- Sistema de reportes generados por los usuarios.  
+- Gestión de usuarios y publicaciones por parte del administrador.  
+- Integración con Cloudinary para almacenar imágenes subidas desde el frontend.  
+- Validación y seguridad mediante Spring Security.
 
-POST /localhost:8080/api/auth/signup
+Está diseñado para compradores, vendedores y administradores dentro del sistema.
 
-> Body Parameters
+## ¿Qué problema resuelve?
 
-```json
-{
-  "name": "Juan Pérez",
-  "email": "juan.perez@email.com",
-  "phoneNumber": "+50312345678",
-  "password": "miPassword123"
-}
+En entornos reales, la compraventa de propiedades suele manejarse por redes sociales o plataformas poco estructuradas, lo que genera:
+
+- Información dispersa o poco confiable.  
+- Perfiles falsos o imposibles de verificar.  
+- Ausencia de un sistema de reportes.  
+- Ningún control administrativo sobre publicaciones.
+
+El backend de InmoMarket resuelve este problema proporcionando:
+
+- Una API ordenada y segura.  
+- Control de usuarios, roles y permisos.  
+- Manejo centralizado de datos inmobiliarios.  
+- Protección de rutas y recursos.  
+- Moderación mediante reportes.  
+
+# Funcionalidades Principales
+
+## Autenticación y usuarios
+- Registro de usuarios.  
+- Inicio de sesión.  
+- Token JWT para proteger rutas.  
+- Actualización de información personal.  
+- Visualización de perfiles.  
+
+## Publicaciones
+- Crear nuevas publicaciones.  
+- Editar publicaciones propias.  
+- Ver todas las publicaciones o filtrarlas.  
+- Cargar imágenes mediante Cloudinary.  
+
+## Sistema de reportes
+- Reportar publicaciones que infrinjan reglas.  
+- Administradores pueden revisar y cambiar el estado del reporte.  
+
+## Roles
+- **Usuario**: crea y gestiona sus publicaciones.  
+- **Administrador**: supervisa usuarios, publicaciones y reportes.
+
+# Requisitos Previos
+
+## Software Necesario
+
+- **JDK 22** o superior  
+  Verificar instalación:  
+  ```
+  java -version
+  ```
+
+- **PostgreSQL 14+**  
+  Verificar instalación:  
+  ```
+  psql --version
+  ```
+
+- **Gradle Wrapper**  
+  No requiere instalación externa.
+
+## Dependencias principales
+
+- Spring Boot 3.5.0  
+- Spring Web  
+- Spring Data JPA  
+- Spring Security  
+- Spring Validation  
+- PostgreSQL  
+- JWT  
+- Cloudinary SDK  
+- Lombok  
+
+# Instalación Paso a Paso
+
+### 1. Clonar el repositorio
+
+```
+git clone <url-del-repositorio>
+cd inmomarket-backend
 ```
 
-### Params
+### 2. Crear la base de datos
 
-| Name          | Location | Type   | Required | Description |
-| ------------- | -------- | ------ | -------- | ----------- |
-| body          | body     | object | no       | none        |
-| » name        | body     | string | yes      | none        |
-| » email       | body     | string | yes      | none        |
-| » phoneNumber | body     | string | yes      | none        |
-| » password    | body     | string | yes      | none        |
-
-> Response Examples
-
-> 200 Response
-
-```json
-{
-  "message": "User registered successfully!"
-}
+```
+psql -U postgres
+CREATE DATABASE inmomarket;
+\q
 ```
 
-### Responses
+### 3. Crear archivo de variables de entorno
 
-| HTTP Status Code | Meaning                                                 | Description | Data schema |
-| ---------------- | ------------------------------------------------------- | ----------- | ----------- |
-| 200              | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none        | Inline      |
-
-### Responses Data Schema
-
-HTTP Status Code **200**
-
-| Name      | Type   | Required | Restrictions | Title | description |
-| --------- | ------ | -------- | ------------ | ----- | ----------- |
-| » message | string | true     | none         |       | none        |
-
-## GET Publications filters
-
-GET /api/publications
-
-### Params
-
-| Name          | Location | Type   | Required | Description |
-| ------------- | -------- | ------ | -------- | ----------- |
-| department    | query    | string | no       | none        |
-| typeName      | query    | string | no       | none        |
-| minPrice      | query    | string | no       | none        |
-| maxPrice      | query    | string | no       | none        |
-| minSize       | query    | string | no       | none        |
-| maxSize       | query    | string | no       | none        |
-| bedrooms      | query    | string | no       | none        |
-| floors        | query    | string | no       | none        |
-| parking       | query    | string | no       | none        |
-| furnished     | query    | string | no       | none        |
-| Authorization | header   | string | no       | none        |
-
-> Response Examples
-
-> 200 Response
-
-```json
-{}
+```
+cp .env.example .env
 ```
 
-### Responses
+### 4. Editar valores reales en `.env`
 
-| HTTP Status Code | Meaning                                                 | Description | Data schema |
-| ---------------- | ------------------------------------------------------- | ----------- | ----------- |
-| 200              | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none        | Inline      |
+- Credenciales de PostgreSQL  
+- Clave JWT  
+- Configuración de Cloudinary  
 
-### Responses Data Schema
+### 5. Construir el proyecto
 
-## GET All Publications
-
-GET /api/publications/All
-
-### Params
-
-| Name          | Location | Type   | Required | Description |
-| ------------- | -------- | ------ | -------- | ----------- |
-| Authorization | header   | string | no       | none        |
-
-> Response Examples
-
-> 200 Response
-
-```json
-[
-  {
-    "propertyAddress": "string",
-    "typeName": "string",
-    "neighborhood": "string",
-    "municipality": "string",
-    "department": "string",
-    "longitude": 0,
-    "latitude": 0,
-    "propertySize": 0,
-    "propertyBedrooms": 0,
-    "propertyFloors": 0,
-    "propertyParking": 0,
-    "propertyFurnished": true,
-    "propertyImageUrl": "string",
-    "userName": "string",
-    "propertyDescription": "string",
-    "propertyPrice": 0
-  }
-]
+```
+./gradlew build
 ```
 
-### Responses
+# Ejecución
 
-| HTTP Status Code | Meaning                                                 | Description | Data schema |
-| ---------------- | ------------------------------------------------------- | ----------- | ----------- |
-| 200              | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none        | Inline      |
+### Modo desarrollo
 
-### Responses Data Schema
-
-HTTP Status Code **200**
-
-| Name                  | Type    | Required | Restrictions | Title | description |
-| --------------------- | ------- | -------- | ------------ | ----- | ----------- |
-| » propertyAddress     | string  | true     | none         |       | none        |
-| » typeName            | string  | true     | none         |       | none        |
-| » neighborhood        | string  | true     | none         |       | none        |
-| » municipality        | string  | true     | none         |       | none        |
-| » department          | string  | true     | none         |       | none        |
-| » longitude           | number  | true     | none         |       | none        |
-| » latitude            | number  | true     | none         |       | none        |
-| » propertySize        | number  | true     | none         |       | none        |
-| » propertyBedrooms    | integer | true     | none         |       | none        |
-| » propertyFloors      | integer | true     | none         |       | none        |
-| » propertyParking     | integer | true     | none         |       | none        |
-| » propertyFurnished   | boolean | true     | none         |       | none        |
-| » propertyImageUrl    | string  | true     | none         |       | none        |
-| » userName            | string  | true     | none         |       | none        |
-| » propertyDescription | string  | true     | none         |       | none        |
-| » propertyPrice       | integer | true     | none         |       | none        |
-
-## POST CreatePublication
-
-POST /api/publications/create
-
-> Body Parameters
-
-```yaml
-propertyAddress: "Calle 123 #45-67"
-typeName: Apartamento
-neighborhood: El Poblado
-municipality: Medellín
-department: Antioquia
-longitude: -75.5678
-latitude: 6.2345
-propertySize: 85
-propertyBedrooms: 2
-propertyFloors: 5
-propertyParking: 1
-propertyFurnished: 1
-propertyPrice: 850000000
-propertyDescription: Amplio apartamento en excelente ubicación, con acabados de
-  lujo y vista panorámica.
-files: ""
-"availableTimes[0].startTime": 13:00
-"availableTimes[0].endTime": 15:00
-"availableTimes[0].dayOfWeek": "2"
+Linux/macOS:
+```
+./gradlew bootRun
 ```
 
-### Params
-
-| Name                          | Location | Type           | Required | Description |
-| ----------------------------- | -------- | -------------- | -------- | ----------- |
-| body                          | body     | object         | no       | none        |
-| » propertyAddress             | body     | string         | yes      | none        |
-| » typeName                    | body     | string         | yes      | none        |
-| » neighborhood                | body     | string         | yes      | none        |
-| » municipality                | body     | string         | yes      | none        |
-| » department                  | body     | string         | yes      | none        |
-| » longitude                   | body     | number         | yes      | none        |
-| » latitude                    | body     | number         | yes      | none        |
-| » propertySize                | body     | number         | yes      | none        |
-| » propertyBedrooms            | body     | number         | yes      | none        |
-| » propertyFloors              | body     | number         | yes      | none        |
-| » propertyParking             | body     | number         | yes      | none        |
-| » propertyFurnished           | body     | number         | yes      | none        |
-| » propertyPrice               | body     | number         | yes      | none        |
-| » propertyDescription         | body     | string         | yes      | none        |
-| » files                       | body     | string(binary) | yes      | none        |
-| » availableTimes[0].startTime | body     | string         | yes      | none        |
-| » availableTimes[0].endTime   | body     | string         | yes      | none        |
-| » availableTimes[0].dayOfWeek | body     | string         | yes      | none        |
-
-> Response Examples
-
-> 200 Response
-
-```json
-{}
+Windows:
+```
+gradlew.bat bootRun
 ```
 
-### Responses
+### Modo producción (JAR)
 
-| HTTP Status Code | Meaning                                                 | Description | Data schema |
-| ---------------- | ------------------------------------------------------- | ----------- | ----------- |
-| 200              | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none        | Inline      |
-
-### Responses Data Schema
-
-## PUT UpdateUser v2
-
-PUT /localhost:8080/api/user/profile
-
-> Body Parameters
-
-```yaml
-name: Josue Zelada
-email: josuezelada412@gmail.com
-phoneNumber: "+50361239659"
-profilePicture: ""
-removeProfilePicture: "false"
+```
+./gradlew clean build
+java -jar build/libs/InmoMarketBackEnd-0.0.1-SNAPSHOT.jar
 ```
 
-### Params
-
-| Name                   | Location | Type           | Required | Description |
-| ---------------------- | -------- | -------------- | -------- | ----------- |
-| body                   | body     | object         | no       | none        |
-| » name                 | body     | string         | yes      | none        |
-| » email                | body     | string         | yes      | none        |
-| » phoneNumber          | body     | string         | yes      | none        |
-| » profilePicture       | body     | string(binary) | yes      | none        |
-| » removeProfilePicture | body     | boolean        | yes      | none        |
-
-> Response Examples
-
-> 200 Response
-
-```json
-{
-  "id": "fcd3ac07-d8fc-47e2-801a-fcb279bb6381",
-  "name": "Josue Zelada",
-  "email": "josuezelada412@gmail.com",
-  "phoneNumber": "+50361239659",
-  "profilePicture": "http://res.cloudinary.com/dx4mlsaxx/image/upload/v1749842123/profile_pictures/tnir8bvdutczhhtjb9nz.jpg",
-  "role": "USER",
-  "createdAt": "2025-06-13T13:11:30.161717",
-  "updatedAt": "2025-06-13T17:31:03.336895"
-}
+La API estará disponible en:
+```
+http://localhost:8080
 ```
 
-### Responses
+# Variables de Entorno (`.env.example`)
 
-| HTTP Status Code | Meaning                                                 | Description | Data schema |
-| ---------------- | ------------------------------------------------------- | ----------- | ----------- |
-| 200              | [OK](https://tools.ietf.org/html/rfc7231#section-6.3.1) | none        | Inline      |
+```
+DATABASE_URL=jdbc:postgresql://localhost:5432/inmomarket
+DATABASE_USERNAME=postgres
+DATABASE_PASSWORD=admin
 
-### Responses Data Schema
+JWT_SECRET=5367566B59703373367639792F423F4528482B4D6251655468576D5A71347437
+JWT_EXPIRATION_MS=86400000
 
-HTTP Status Code **200**
+CLOUDINARY_CLOUD_NAME=dstkr4nut
+CLOUDINARY_API_KEY=528173669226754
+CLOUDINARY_API_SECRET=y0E3oQFU1pEB8eL0dTmOjROeBJ8
+```
 
-| Name             | Type   | Required | Restrictions | Title | description |
-| ---------------- | ------ | -------- | ------------ | ----- | ----------- |
-| » id             | string | true     | none         |       | none        |
-| » name           | string | true     | none         |       | none        |
-| » email          | string | true     | none         |       | none        |
-| » phoneNumber    | string | true     | none         |       | none        |
-| » profilePicture | string | true     | none         |       | none        |
-| » role           | string | true     | none         |       | none        |
-| » createdAt      | string | true     | none         |       | none        |
-| » updatedAt      | string | true     | none         |       | none        |
+## Explicación
 
-# Data Schema
+- `DATABASE_URL`: dirección de PostgreSQL  
+- `DATABASE_USERNAME` / `DATABASE_PASSWORD`: credenciales  
+- `JWT_SECRET`: clave para firmar tokens  
+- `JWT_EXPIRATION_MS`: tiempo de vigencia del token  
+- `Cloudinary_*`: credenciales para almacenar imágenes  
+
+# Endpoints Principales
+
+## Autenticación
+- POST `/api/auth/signup`  
+- POST `/api/auth/signin`
+
+## Publicaciones
+- GET `/api/publications`  
+- GET `/api/publications/all`  
+- POST `/api/publications/create`  
+
+## Usuario
+- PUT `/api/user/profile`  
+
+# Estructura del Proyecto
+
+```
+src/
+├── main/
+│   ├── java/org/milianz/
+│   │   ├── config/
+│   │   ├── controller/
+│   │   ├── dto/
+│   │   ├── entity/
+│   │   ├── repository/
+│   │   ├── security/
+│   │   └── service/
+│   └── resources/
+│       └── application.properties
+└── test/
+```
+
+# Solución de Problemas Comunes
+
+### Puerto 8080 ocupado
+```
+lsof -i :8080   # Linux/macOS
+netstat -ano | findstr :8080   # Windows
+```
+
+### Error de conexión a PostgreSQL
+- Confirmar que PostgreSQL esté corriendo.  
+- Verificar credenciales en `.env`.  
+
+### Error "JWT Secret must be at least 256 bits"
+Generar una nueva clave:
+```
+openssl rand -base64 32
+```
+
+# Contribución
+
+1. Fork del repositorio  
+2. Crear rama nueva  
+3. Commits  
+4. Push  
+5. Pull Request  
