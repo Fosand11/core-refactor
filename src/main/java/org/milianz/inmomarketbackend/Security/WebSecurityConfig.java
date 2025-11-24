@@ -77,20 +77,33 @@ public class WebSecurityConfig {
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // Rutas públicas - permitir sin autenticación
+                        // OpenAPI/Swagger endpoints - DEBEN ESTAR PRIMERO
+                        .requestMatchers("/swagger-ui/**").permitAll()
+                        .requestMatchers("/swagger-ui.html").permitAll()
+                        .requestMatchers("/v3/api-docs/**").permitAll()
+                        .requestMatchers("/api-docs/**").permitAll()
+                        .requestMatchers("/swagger-resources/**").permitAll()
+                        .requestMatchers("/webjars/**").permitAll()
+                        // Rutas públicas de autenticación
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/test/**").permitAll()
-                        .requestMatchers("api/publications/All").permitAll()
                         .requestMatchers("/error").permitAll()
+                        // Rutas públicas de publicaciones (específicas primero)
+                        .requestMatchers("/api/publications/All").permitAll()
                         .requestMatchers("/api/publications/lastPublications").permitAll()
                         .requestMatchers("/api/publications/mostPopularPublications").permitAll()
-                        // Rutas protegidas
+                        .requestMatchers("/api/publications/publicationById").permitAll()
+                        .requestMatchers("/api/publications").permitAll()
+                        // Rutas protegidas de publicaciones
                         .requestMatchers("/api/publications/**").authenticated()
+                        // Rutas de reportes
                         .requestMatchers("/api/reports/create").hasRole("USER")
                         .requestMatchers("/api/reports/my-reports").hasRole("USER")
-                        .requestMatchers("/api/favorites/**").hasRole("USER")
                         .requestMatchers("/api/reports/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/reports/publication/**").hasRole("ADMIN")
+                        // Rutas de favoritos
+                        .requestMatchers("/api/favorites/**").hasRole("USER")
+                        // Cualquier otra petición requiere autenticación
                         .anyRequest().authenticated()
                 );
 
