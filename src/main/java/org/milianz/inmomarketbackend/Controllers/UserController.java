@@ -1,5 +1,13 @@
 package org.milianz.inmomarketbackend.Controllers;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.milianz.inmomarketbackend.Payload.Request.UpdateProfileRequest;
 import org.milianz.inmomarketbackend.Payload.Response.MessageResponse;
@@ -25,17 +33,28 @@ import java.io.IOException;
 @RestController
 @RequestMapping("/api/user")
 @RequiredArgsConstructor
+@Tag(name = "Usuario", description = "Gestión de perfil de usuario")
+@SecurityRequirement(name = "Bearer Authentication")
 public class UserController {
 
     private final UserService userService;
 
-    /**
-     * Obtiene el perfil del usuario autenticado actualmente.
-     *
-     * @return ResponseEntity con UserProfileResponse conteniendo datos del perfil
-     *         200 OK: Perfil obtenido exitosamente
-     *         500 Internal Server Error: Error al obtener el perfil
-     */
+    @Operation(
+            summary = "Obtener perfil actual",
+            description = "Obtiene el perfil completo del usuario autenticado actualmente"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Perfil obtenido exitosamente",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = UserProfileResponse.class)
+                    )
+            ),
+            @ApiResponse(responseCode = "401", description = "No autenticado"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
+    })
     @GetMapping("/profile")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<UserProfileResponse> getCurrentUserProfile() {
@@ -47,39 +66,52 @@ public class UserController {
         }
     }
 
-    /**
-     * Actualiza el perfil del usuario autenticado.
-     *
-     * Permite modificar nombre, email, teléfono, contraseña y foto de perfil.
-     * Solo el usuario autenticado puede modificar su propio perfil.
-     *
-     * @param name Nombre completo del usuario
-     * @param email Correo electrónico (debe ser único)
-     * @param phoneNumber Número de teléfono en formato E.164
-     * @param currentPassword Contraseña actual (requerida si se cambia contraseña)
-     * @param newPassword Nueva contraseña (requerida si se cambia contraseña)
-     * @param profilePicture Archivo de imagen para foto de perfil (opcional)
-     * @param removeProfilePicture Flag para eliminar foto actual (default: false)
-     *
-     * @return ResponseEntity con:
-     *         200 OK + UserProfileResponse: Actualización exitosa
-     *         400 Bad Request: Error de validación o lógica de negocio
-     *         500 Internal Server Error: Error al procesar imagen o error del servidor
-     *
-     * @throws RuntimeException si el email está en uso, la contraseña es incorrecta,
-     *                          o faltan campos requeridos
-     * @throws IOException si hay error al procesar la imagen
-     */
+    @Operation(
+            summary = "Actualizar perfil de usuario",
+            description = """
+                    Actualiza el perfil del usuario autenticado. Permite modificar nombre, email, teléfono, contraseña y foto de perfil.
+                    - Para cambiar contraseña: proporcionar currentPassword y newPassword
+                    - Para subir nueva foto: incluir archivo en profilePicture
+                    - Para eliminar foto actual: enviar removeProfilePicture=true
+                    """
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Perfil actualizado exitosamente",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = UserProfileResponse.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Error de validación (email duplicado, contraseña incorrecta, etc.)",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = MessageResponse.class)
+                    )
+            ),
+            @ApiResponse(responseCode = "401", description = "No autenticado"),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Error al procesar imagen o error del servidor",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = MessageResponse.class)
+                    )
+            )
+    })
     @PutMapping(value = "/profile", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<?> updateUserProfile(
-            @RequestParam("name") String name,
-            @RequestParam("email") String email,
-            @RequestParam("phoneNumber") String phoneNumber,
-            @RequestParam(value = "currentPassword", required = false) String currentPassword,
-            @RequestParam(value = "newPassword", required = false) String newPassword,
-            @RequestParam(value = "profilePicture", required = false) MultipartFile profilePicture,
-            @RequestParam(value = "removeProfilePicture", defaultValue = "false") Boolean removeProfilePicture) {
+            @Parameter(description = "Nombre completo del usuario", required = true) @RequestParam("name") String name,
+            @Parameter(description = "Correo electrónico (debe ser único)", required = true) @RequestParam("email") String email,
+            @Parameter(description = "Número de teléfono en formato E.164", required = true) @RequestParam("phoneNumber") String phoneNumber,
+            @Parameter(description = "Contraseña actual (requerida para cambiar contraseña)") @RequestParam(value = "currentPassword", required = false) String currentPassword,
+            @Parameter(description = "Nueva contraseña (mínimo 6 caracteres)") @RequestParam(value = "newPassword", required = false) String newPassword,
+            @Parameter(description = "Archivo de imagen para foto de perfil") @RequestParam(value = "profilePicture", required = false) MultipartFile profilePicture,
+            @Parameter(description = "Eliminar foto de perfil actual") @RequestParam(value = "removeProfilePicture", defaultValue = "false") Boolean removeProfilePicture) {
 
         try {
             // Crear el UpdateProfileRequest
